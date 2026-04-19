@@ -8,7 +8,13 @@
       "Bash(ls /Users/andy/development/footie/whatsapp-footie-group-reader-poc/node_modules/qrcode-terminal/*.d.ts)",
       "Bash(npx tsc:*)",
       "Bash(grep -rn \"end\\\\b\" /Users/andy/development/footie/whatsapp-footie-group-reader-poc/node_modules/@whiskeysockets/baileys/lib/Types/*.d.ts)",
-      "Bash(grep ^dist$:*)"
+      "Bash(grep ^dist$:*)",
+      "Bash(cp src/index.ts packages/whatsapp-monitor/src/)",
+      "Bash(cp src/config.ts packages/whatsapp-monitor/src/)",
+      "Bash(cp src/types.d.ts packages/whatsapp-monitor/src/)",
+      "Bash(cp src/kafka/producer.ts packages/whatsapp-monitor/src/kafka/)",
+      "Bash(cp src/whatsapp/client.ts packages/whatsapp-monitor/src/whatsapp/)",
+      "Bash(npm run:*)"
     ]
   }
 }

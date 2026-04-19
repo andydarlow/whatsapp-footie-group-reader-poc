@@ -1,0 +1,16 @@
+import 'dotenv/config';
+
+export const config = {
+  kafka: {
+    brokers:   (process.env.KAFKA_BROKERS || 'localhost:31092').split(','),
+    pollTopic: process.env.KAFKA_POLL_TOPIC || 'poll',
+    groupId:   process.env.KAFKA_CONSUMER_GROUP || 'match-poll-consumer',
+  },
+  postgres: {
+    host:     process.env.POSTGRES_HOST     || 'localhost',
+    port:     parseInt(process.env.POSTGRES_PORT || '5432', 10),
+    database: process.env.POSTGRES_DB       || 'whatsapp_monitor',
+    user:     process.env.POSTGRES_USER     || 'postgres',
+    password: process.env.POSTGRES_PASSWORD || 'postgres',
+  },
+};
