@@ -3,7 +3,12 @@
     "allow": [
       "Bash(docker build:*)",
       "Bash(kubectl get:*)",
-      "Bash(kubectl describe:*)"
+      "Bash(kubectl describe:*)",
+      "Bash(npm install:*)",
+      "Bash(ls /Users/andy/development/footie/whatsapp-footie-group-reader-poc/node_modules/qrcode-terminal/*.d.ts)",
+      "Bash(npx tsc:*)",
+      "Bash(grep -rn \"end\\\\b\" /Users/andy/development/footie/whatsapp-footie-group-reader-poc/node_modules/@whiskeysockets/baileys/lib/Types/*.d.ts)",
+      "Bash(grep ^dist$:*)"
     ]
   }
 }
