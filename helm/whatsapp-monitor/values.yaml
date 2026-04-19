@@ -1,0 +1,45 @@
+# ── WhatsApp Monitor ──────────────────────────────────────────────────────────
+# designed to run on Orbstack locally for testing
+monitor:
+  image:
+    repository: whatsapp-monitor
+    tag: latest
+    pullPolicy: Never          # image built locally for minikube / kind
+  config:
+    groupName:      "My Football Group"
+    scoreTopicName: score
+    pollTopicName:  poll
+    authDir:        /data/auth
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "100m"
+  credentials:
+    storage:      0.5Gi
+    storageClass: local-path
+
+# ── PostgreSQL ────────────────────────────────────────────────────────────────
+postgres:
+  image:     postgres:15-alpine
+  database:  whatsapp_monitor
+  user:      whatsapp
+  password:  changeme          # override with --set or a values override file
+  storage:   0.5Gi
+  storageClass: local-path
+  service:
+    type:     NodePort
+    nodePort: 30432            # accessible from the host for inspection / testing
+
+# ── Zookeeper ─────────────────────────────────────────────────────────────────
+zookeeper:
+  image:        confluentinc/cp-zookeeper:7.5.0
+  clientPort:  2181
+
+# ── Kafka ─────────────────────────────────────────────────────────────────────
+kafka:
+  image:       confluentinc/cp-kafka:7.5.0
+  storage:     0.5Gi
+  storageClass: local-path

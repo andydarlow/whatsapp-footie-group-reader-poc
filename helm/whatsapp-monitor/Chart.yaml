@@ -1,0 +1,6 @@
+apiVersion: v2
+name: whatsapp-monitor
+description: WhatsApp Message Monitor — routes group messages to Kafka topics and stores them in PostgreSQL
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

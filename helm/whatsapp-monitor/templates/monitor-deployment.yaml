@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "whatsapp-monitor.fullname" . }}-monitor
+  labels:
+    {{- include "whatsapp-monitor.labels" . | nindent 4 }}
+    app: whatsapp-monitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whatsapp-monitor
+  template:
+    metadata:
+      labels:
+        app: whatsapp-monitor
+    spec:
+      containers:
+        - name: whatsapp-monitor
+          image: "{{ .Values.monitor.image.repository }}:{{ .Values.monitor.image.tag }}"
+          imagePullPolicy: {{ .Values.monitor.image.pullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "whatsapp-monitor.fullname" . }}-config
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "whatsapp-monitor.fullname" . }}-secrets
+                  key: postgres-password
+          resources:
+            {{- toYaml .Values.monitor.resources | nindent 12 }}
+          volumeMounts:
+            - name: credentials
+              mountPath: {{ .Values.monitor.config.authDir }}
+      volumes:
+        - name: credentials
+          persistentVolumeClaim:
+            claimName: {{ include "whatsapp-monitor.fullname" . }}-credentials

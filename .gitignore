@@ -70,6 +70,9 @@ web_modules/
 .env.*
 !.env.example
 
+# WhatsApp auth credentials (contains session keys — never commit)
+auth_info/
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
@@ -137,3 +140,12 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# runtime config
+
+/src/cache/*.json
+/src/auth_info/
+
+#ide config
+
+.idea/
