@@ -7,17 +7,22 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "liquibase:update": "liquibase --defaults-file=liquibase/liquibase.properties --changelog-file=liquibase/changelog-master.xml update"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
     "kafkajs": "^2.2.4",
+    "liquibase": "^4.28.1",
     "pg": "^8.13.3"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
     "@types/pg": "^8.11.0",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^3.2.1"
   }
 }

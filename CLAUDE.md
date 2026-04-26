@@ -13,7 +13,7 @@ It will use a linked account to obtain access to whatapp.
 
 # architecture
 1. code in mono repo using npm workspaces
-2. Four components:
+2. Three components:
 	1. Whatsapp-message-Monitor (`packages/whatsapp-monitor`): reads messages from Whatsapp and places them on kafka topic. it will put the message on the score topic if it's a message with the word score on it, the poll topic if its related to a queue. 
     2. Match Poll consumer (`packages/match-poll-consumer`): reads poll about who wants to play in a match and stores the data in a db. This includes the history for the match (Poll) and the current state of which players are playing or not playing
 	3. Team Admin command processor (`packages/team-admin-processor`): processes the commands received on an 'action' topic. This will return data on a separate topic called 'result'

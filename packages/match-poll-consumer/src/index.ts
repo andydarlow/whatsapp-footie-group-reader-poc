@@ -1,5 +1,5 @@
 import { config } from './config.js';
-import { initDatabase, closeDatabase } from './db/client.js';
+import { closeDatabase } from './db/client.js';
 import { startConsumer, stopConsumer } from './kafka/consumer.js';
 
 console.log('Starting Match Poll Consumer...');
@@ -7,9 +7,8 @@ console.log(`  Kafka brokers : ${config.kafka.brokers.join(', ')}`);
 console.log(`  Poll topic    : ${config.kafka.pollTopic}`);
 console.log(`  Consumer group: ${config.kafka.groupId}`);
 
-/** Connects to the database, initialises schema, and starts consuming. */
+/** Connects to the database and starts consuming from Kafka. */
 async function main(): Promise<void> {
-  await initDatabase();
   await startConsumer();
 }
 
@@ -26,7 +25,7 @@ async function shutdown(): Promise<void> {
 }
 
 process.on('SIGTERM', shutdown);
-process.on('SIGINT',  shutdown);
+process.on('SIGINT', shutdown);
 
 main().catch((err: Error) => {
   console.error('Fatal error:', err);

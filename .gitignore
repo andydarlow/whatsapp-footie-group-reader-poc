@@ -96,7 +96,6 @@ dist
 
 # vuepress v2.x temp and cache directory
 .temp
-.cache
 
 # Sveltekit cache directory
 .svelte-kit/
@@ -143,8 +142,8 @@ vite.config.ts.timestamp-*
 
 # runtime config
 
-/src/cache/*.json
-/src/auth_info/
+**/src/cache/*.json
+**/auth_info/
 
 #ide config
 
