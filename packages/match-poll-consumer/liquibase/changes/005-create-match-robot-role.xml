@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="005" author="match-poll-consumer">
+        <comment>Create match_robot role with read/write access to match_day tables only</comment>
+
+        <sql splitStatements="false">
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'match_robot') THEN
+                    CREATE ROLE match_robot WITH LOGIN PASSWORD 'match_robot';
+                END IF;
+            END
+            $$;
+        </sql>
+
+        <!-- Allow the role to access the schema -->
+        <sql>GRANT USAGE ON SCHEMA match_day TO match_robot;</sql>
+
+        <!-- Allow SELECT, INSERT, UPDATE, DELETE on all current tables -->
+        <sql>GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA match_day TO match_robot;</sql>
+
+        <!-- Allow usage on sequences so serial columns work -->
+        <sql>GRANT USAGE ON ALL SEQUENCES IN SCHEMA match_day TO match_robot;</sql>
+
+        <!-- Apply the same grants automatically to any future tables/sequences -->
+        <sql>ALTER DEFAULT PRIVILEGES IN SCHEMA match_day GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO match_robot;</sql>
+        <sql>ALTER DEFAULT PRIVILEGES IN SCHEMA match_day GRANT USAGE ON SEQUENCES TO match_robot;</sql>
+    </changeSet>
+
+</databaseChangeLog>
