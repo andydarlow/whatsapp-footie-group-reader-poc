@@ -24,8 +24,8 @@ monitor:
 # ── PostgreSQL ────────────────────────────────────────────────────────────────
 postgres:
   image:     postgres:15-alpine
-  database:  whatsapp_monitor
-  user:      whatsapp
+  database:  polymatches
+  user:      admin
   password:  changeme          # override with --set or a values override file
   storage:   0.5Gi
   storageClass: local-path
