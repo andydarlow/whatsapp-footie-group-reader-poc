@@ -161,8 +161,10 @@ function parseKickoffTime(time: string): { hours: number; minutes: number } {
   let hours     = parseInt(parts[0], 10);
   const minutes = parts.length > 1 ? parseInt(parts[1], 10) : 0;
 
+  if (!isAm && !isPm && hours < 12 ) hours += 12; // just incase it says game at 3:00
   if (isPm && hours < 12) hours += 12;
   if (isAm && hours === 12) hours = 0;
+
 
   return { hours, minutes };
 }
@@ -189,7 +191,7 @@ async function handleScoreMessage(msg: WAMessage, { groupName, sender, timestamp
     timestamp: timestamp.toISOString(),
   };
   try {
-    await sendMessage(config.scoreTopicName, groupName, payload);
+    await sendMessage(config.scoreTopicName, msg.key.id!, payload);
     console.log(`[score] "${text}" from ${sender}`);
   } catch (err) {
     console.error('Error routing score message:', (err as Error).message);
@@ -304,7 +306,7 @@ async function handlePollVote(msg: WAMessage, { groupName, sender, timestamp }: 
     timestamp:       timestamp.toISOString(),
   };
   try {
-    await sendMessage(config.pollTopicName, groupName, payload);
+    await sendMessage(config.pollTopicName, msg.key.id!, payload);
     console.log(`[poll] Vote from ${sender} on poll ${pollMsgId}: [${selectedOptions.join(', ')}]`);
   } catch (err) {
     console.error('Error routing poll vote:', (err as Error).message);
