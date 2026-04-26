@@ -5,21 +5,21 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <changeSet id="003" author="match-poll-consumer">
+    <changeSet id="004" author="match-poll-consumer">
         <comment>Create match_votes table to track member availability for each match</comment>
-        <createTable tableName="match_votes">
+        <createTable schemaName="match_day" tableName="match_votes">
             <column name="id" type="SERIAL" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="match_id" type="INT">
                 <constraints nullable="false"
                              foreignKeyName="fk_match_votes_match"
-                             references="matches(id)"/>
+                             references="match_day.matches(id)"/>
             </column>
             <column name="member_id" type="INT">
                 <constraints nullable="false"
                              foreignKeyName="fk_match_votes_member"
-                             references="members(id)"/>
+                             references="match_day.members(id)"/>
             </column>
             <column name="selected_options" type="TEXT[]">
                 <constraints nullable="false"/>
@@ -30,6 +30,7 @@
         </createTable>
 
         <addUniqueConstraint
+            schemaName="match_day"
             tableName="match_votes"
             columnNames="match_id, member_id"
             constraintName="uq_match_votes_match_member"/>

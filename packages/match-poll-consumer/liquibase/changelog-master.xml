@@ -5,10 +5,10 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <include file="changes/001-create-members-table.xml" relativeToChangelogFile="true"/>
-    <include file="changes/002-create-matches-table.xml" relativeToChangelogFile="true"/>
-    <include file="changes/003-create-match-votes-table.xml" relativeToChangelogFile="true"/>
-    <include file="changes/004-move-tables-to-match-day-schema.xml" relativeToChangelogFile="true"/>
+    <include file="changes/001-create-match-day-schema.xml" relativeToChangelogFile="true"/>
+    <include file="changes/002-create-members-table.xml" relativeToChangelogFile="true"/>
+    <include file="changes/003-create-matches-table.xml" relativeToChangelogFile="true"/>
+    <include file="changes/004-create-match-votes-table.xml" relativeToChangelogFile="true"/>
     <include file="changes/005-create-match-robot-role.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

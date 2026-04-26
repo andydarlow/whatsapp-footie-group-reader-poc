@@ -5,14 +5,10 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <changeSet id="004" author="match-poll-consumer">
-        <comment>Create match_day schema and move all tables into it</comment>
+    <changeSet id="001" author="match-poll-consumer">
+        <comment>Create match_day schema</comment>
 
         <sql>CREATE SCHEMA IF NOT EXISTS match_day;</sql>
-
-        <sql>ALTER TABLE public.match_votes SET SCHEMA match_day;</sql>
-        <sql>ALTER TABLE public.matches SET SCHEMA match_day;</sql>
-        <sql>ALTER TABLE public.members SET SCHEMA match_day;</sql>
     </changeSet>
 
 </databaseChangeLog>
