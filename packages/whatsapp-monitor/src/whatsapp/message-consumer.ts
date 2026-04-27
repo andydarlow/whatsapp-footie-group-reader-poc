@@ -2,9 +2,12 @@
 import {
     type WAMessage,
 } from '@whiskeysockets/baileys';
+import pino from 'pino';
 import { config } from '../config.js';
 import { sendMessage } from '../kafka/producer.js';
 import {MessageContext} from "./client.js";
+
+const logger = pino({ level: config.logLevel });
 
 // ── Message type handlers ──────────────────────────────────────────────────
 
@@ -17,7 +20,7 @@ import {MessageContext} from "./client.js";
 export async function handleScoreMessage(msg: WAMessage, { groupName, sender, timestamp }: MessageContext): Promise<void> {
     const content = msg.message!;
     const text = content.conversation || content.extendedTextMessage?.text || '';
-    console.log(`text was: ${text}`)
+    logger.info(`text was: ${text}`);
     if (!text.trim().toLowerCase().startsWith('score')) return;
 
     const payload = {
@@ -29,8 +32,8 @@ export async function handleScoreMessage(msg: WAMessage, { groupName, sender, ti
     };
     try {
         await sendMessage(config.scoreTopicName, msg.key.id!, payload);
-        console.log(`[score] "${text}" from ${sender}`);
+        logger.info(`[score] "${text}" from ${sender}`);
     } catch (err) {
-        console.error('Error routing score message:', (err as Error).message);
+        logger.error(`Error routing score message: ${(err as Error).message}`);
     }
 }

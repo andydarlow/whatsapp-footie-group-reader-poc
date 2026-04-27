@@ -7,6 +7,11 @@ import { config } from '../config.js';
 import { sendMessage } from '../kafka/producer.js';
 import { createFileCache } from '../cache/file-cache.js';
 import {MessageContext} from "./client.js";
+import pino from 'pino'
+
+
+const logger = pino({ level: config.logLevel });
+
 
 
 // when the game's Kick off time is (usually saturday at 1pm)
@@ -107,7 +112,7 @@ export async function handlePollCreation(msg: WAMessage, { groupName, sender, ti
 
   const matchKickoffTime = parseMatchInfo(pollName);
   if (!matchKickoffTime) {
-    console.log(`[poll] Skipping non-match poll: "${pollName}"`);
+    logger.info(`[poll] Skipping non-match poll: "${pollName}"`);
     return;
   }
 
@@ -131,9 +136,9 @@ export async function handlePollCreation(msg: WAMessage, { groupName, sender, ti
   };
   try {
     await sendMessage(config.pollTopicName, msg.key.id!, payload);
-    console.log(`[poll] Created: "${poll.name}" [${options.join(' | ')}]`);
+    logger.info(`[poll] Created: "${poll.name}" [${options.join(' | ')}]`);
   } catch (err) {
-    console.error('Error routing poll creation:', (err as Error).message);
+    logger.info(`Error routing poll creation: ${(err as Error).message}`);
   }
 }
 
@@ -185,7 +190,7 @@ export async function handlePollVote(msg: WAMessage, { groupName, sender, timest
       });
       selectedOptions = resolveSelectedOptions(decrypted, cached.options);
     } catch (err) {
-      console.warn(`[poll] Could not decrypt vote on poll ${pollMsgId}:`, (err as Error).message);
+      logger.error(`[poll] Could not decrypt vote on poll ${pollMsgId}:  ${(err as Error).message}`);
     }
   }
 
@@ -202,8 +207,8 @@ export async function handlePollVote(msg: WAMessage, { groupName, sender, timest
   };
   try {
     await sendMessage(config.pollTopicName, msg.key.id!, payload);
-    console.log(`[poll] Vote from ${sender} on poll ${pollMsgId}: [${selectedOptions.join(', ')}]`);
+    logger.info(`[poll] Vote from ${sender} on poll ${pollMsgId}: [${selectedOptions.join(', ')}]`);
   } catch (err) {
-    console.error('Error routing poll vote:', (err as Error).message);
+    logger.error(`Error routing poll vote: ${(err as Error).message}`);
   }
 }

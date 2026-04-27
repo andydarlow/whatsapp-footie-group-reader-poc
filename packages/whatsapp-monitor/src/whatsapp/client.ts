@@ -26,8 +26,11 @@ export interface MessageContext {
 }
 
 
+
+const logger = pino({ level: config.logLevel });
 // Suppress Baileys' internal verbose logging
-const logger = pino({ level: 'silent' });
+const baileysLogger = logger.child({ module: 'baileys' });
+baileysLogger.level = 'silent'; // Change to 'error' if you want to see only crashes
 
 let sock: WASocket;
 const groupNameCache = new Map<string, string>(); // jid -> group subject
@@ -64,13 +67,13 @@ async function preloadGroups(): Promise<void> {
     }
     const found = [...groupNameCache.values()].includes(config.groupName);
     if (found) {
-      console.log(`Monitoring group: "${config.groupName}"`);
+      logger.info(`Monitoring group: "${config.groupName}"`);
     } else {
-      console.warn(`Warning: group "${config.groupName}" not found in joined groups.`);
-      console.warn('Available groups:', [...groupNameCache.values()].join(', ') || '(none)');
+     logger.warn(`Warning: group "${config.groupName}" not found in joined groups.`);
+     logger.warn(`Available groups: ${[...groupNameCache.values()].join(', ') || '(none)}'}`);
     }
   } catch (err) {
-    console.error('Could not preload group list:', (err as Error).message);
+    logger.error(`Could not preload group list: ${(err as Error).message}`);
   }
 }
 
@@ -106,7 +109,7 @@ async function makeContext(msg: WAMessage) {
  */
 function handleQRCode(qr: string): void {
   qrcode.generate(qr, { small: true });
-  console.log('Scan the QR code above with WhatsApp to link this device.');
+  logger.info('Scan the QR code above with WhatsApp to link this device.');
 }
 
 /**
@@ -114,7 +117,7 @@ function handleQRCode(qr: string): void {
  * Triggers group preloading so the target group can be identified immediately.
  */
 async function handleConnectionOpen(): Promise<void> {
-  console.log('WhatsApp connected.');
+  logger.info('WhatsApp connected.');
   await preloadGroups();
 }
 
@@ -128,9 +131,9 @@ async function handleConnectionOpen(): Promise<void> {
 function handleConnectionClose(lastDisconnect: { error?: Error } | undefined, reconnect: () => void): void {
   const statusCode = new Boom(lastDisconnect?.error)?.output?.statusCode;
   if (statusCode === DisconnectReason.loggedOut) {
-    console.error('Logged out. Delete auth directory and restart to re-pair.');
+   logger.error('Logged out. Delete auth directory and restart to re-pair.');
   } else {
-    console.log(`Connection closed (code ${statusCode}). Reconnecting in 5 s...`);
+    logger.info(`Connection closed (code ${statusCode}). Reconnecting in 5 s...`);
     setTimeout(reconnect, 5000);
   }
 }
@@ -171,7 +174,7 @@ export async function startWhatsAppClient(): Promise<void> {
   const { state, saveCreds } = await useMultiFileAuthState(config.authDir);
   const { version }          = await fetchLatestBaileysVersion();
 
-  console.log(`Baileys version: ${version.join('.')}`);
+  logger.info(`Baileys version: ${version.join('.')}`);
 
   const connect = (): void => {
     sock = makeWASocket({

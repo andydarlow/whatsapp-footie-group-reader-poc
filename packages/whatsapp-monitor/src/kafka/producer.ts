@@ -1,5 +1,8 @@
 import { Kafka, Partitioners } from 'kafkajs';
+import pino from 'pino';
 import { config } from '../config.js';
+
+const logger = pino({ level: config.logLevel });
 
 const kafka = new Kafka({
   clientId: 'whatsapp-message-monitor',
@@ -20,7 +23,7 @@ let connected = false;
 export async function connectProducer(): Promise<void> {
   await producer.connect();
   connected = true;
-  console.log('Kafka producer connected.');
+  logger.info('Kafka producer connected.');
 }
 
 /**
