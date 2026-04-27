@@ -8,9 +8,9 @@ export const config = {
   },
   postgres: {
     host:     process.env.POSTGRES_HOST     || 'localhost',
-    port:     parseInt(process.env.POSTGRES_PORT || '5432', 10),
-    database: process.env.POSTGRES_DB       || 'whatsapp_monitor',
-    user:     process.env.POSTGRES_USER     || 'postgres',
-    password: process.env.POSTGRES_PASSWORD || 'postgres',
+    port:     parseInt(process.env.POSTGRES_PORT || '30432', 10),
+    database: process.env.POSTGRES_DB       || 'polymatches',
+    user:     process.env.POSTGRES_USER     || 'admin',
+    password: process.env.POSTGRES_PASSWORD || 'dhxxdwsdss123',
   },
 };

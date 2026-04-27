@@ -21,7 +21,7 @@
                              foreignKeyName="fk_match_votes_member"
                              references="match_day.members(id)"/>
             </column>
-            <column name="selected_options" type="TEXT[]">
+            <column name="vote" type="TEXT">
                 <constraints nullable="false"/>
             </column>
             <column name="voted_at" type="TIMESTAMPTZ">

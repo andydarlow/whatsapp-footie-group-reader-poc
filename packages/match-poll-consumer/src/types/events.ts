@@ -1,11 +1,11 @@
 /** Event emitted when a new poll is created in the WhatsApp group. */
 export interface PollCreatedEvent {
+  matchTimestamp: string;
   type: 'poll_created';
   messageId: string;
   group: string;
   sender: string;
   pollName: string;
-  matchDate: string;
   options: string[];
   timestamp: string;
 }
@@ -51,6 +51,6 @@ export interface MatchVote {
   id: number;
   matchId: number;
   memberId: number;
-  selectedOptions: string[];
+  vote: string;
   votedAt: Date;
 }

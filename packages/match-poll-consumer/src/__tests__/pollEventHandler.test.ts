@@ -23,7 +23,7 @@ describe('pollEventHandler', () => {
       group: 'test-group',
       sender: 'creator@lid',
       pollName: 'Saturday game',
-      matchDate: '2026-04-25T15:00:00Z',
+      matchTimestamp: '2026-04-25T15:00:00Z',
       options: ['Yes', 'No'],
       timestamp: '2026-04-24T21:00:00Z',
     };
@@ -72,14 +72,14 @@ describe('pollEventHandler', () => {
       });
       vi.mocked(voteRepo.saveMatchVote).mockResolvedValue({
         id: 1, matchId: 1, memberId: 5,
-        selectedOptions: ['Yes'], votedAt: new Date('2026-04-24T21:14:00Z'),
+        vote: 'Yes', votedAt: new Date('2026-04-24T21:14:00Z'),
       });
 
       await handlePollEvent(mockPool, event);
 
       expect(matchRepo.findMatchByPollMessageId).toHaveBeenCalledWith(mockPool, 'MSG001');
       expect(memberRepo.findOrCreateMember).toHaveBeenCalledWith(mockPool, 'player@lid', 'Peter');
-      expect(voteRepo.saveMatchVote).toHaveBeenCalledWith(mockPool, 1, 5, ['Yes'], '2026-04-24T21:14:00Z');
+      expect(voteRepo.saveMatchVote).toHaveBeenCalledWith(mockPool, 1, 5, 'Yes', '2026-04-24T21:14:00Z');
     });
 
     it('skips the vote when no matching match is found', async () => {

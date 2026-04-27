@@ -12,22 +12,22 @@ describe('matchVoteRepository', () => {
         id: 1,
         match_id: 10,
         member_id: 5,
-        selected_options: ['Yes'],
+        vote: 'Yes',
         voted_at: new Date('2026-04-24T21:14:00Z'),
       };
       const query = vi.fn().mockResolvedValue({ rows: [row] });
       const pool = createMockPool(query);
 
       const result = await saveMatchVote(
-        pool, 10, 5, ['Yes'], '2026-04-24T21:14:00Z',
+        pool, 10, 5, 'Yes', '2026-04-24T21:14:00Z',
       );
 
       expect(result.matchId).toBe(10);
       expect(result.memberId).toBe(5);
-      expect(result.selectedOptions).toEqual(['Yes']);
+      expect(result.vote).toEqual('Yes');
       expect(query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO match_day.match_votes'),
-        [10, 5, ['Yes'], '2026-04-24T21:14:00Z'],
+        [10, 5, 'Yes', '2026-04-24T21:14:00Z'],
       );
     });
   });
