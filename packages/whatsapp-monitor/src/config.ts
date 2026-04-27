@@ -11,4 +11,6 @@ export const config = {
   scoreTopicName: process.env.KAFKA_SCORE_TOPIC || 'score',
   pollTopicName:  process.env.KAFKA_POLL_TOPIC  || 'poll',
 
+  // Logging
+  logLevel: process.env.LOG_LEVEL || 'info',
 };

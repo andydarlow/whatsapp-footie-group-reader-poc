@@ -1,13 +1,16 @@
+import pino from 'pino';
 import { config } from './config.js';
 import { connectProducer, disconnectProducer } from './kafka/producer.js';
 import { startWhatsAppClient, stopWhatsAppClient } from './whatsapp/client.js';
 
-console.log('Starting WhatsApp Message Monitor...');
-console.log(`  Monitoring group : ${config.groupName}`);
-console.log(`  Kafka brokers    : ${config.kafkaBrokers.join(', ')}`);
-console.log(`  Score topic      : ${config.scoreTopicName}`);
-console.log(`  Poll topic       : ${config.pollTopicName}`);
-console.log(`  Auth directory   : ${config.authDir}`);
+const logger = pino({ level: config.logLevel });
+
+logger.info('Starting WhatsApp Message Monitor...');
+logger.info(`  Monitoring group : ${config.groupName}`);
+logger.info(`  Kafka brokers    : ${config.kafkaBrokers.join(', ')}`);
+logger.info(`  Score topic      : ${config.scoreTopicName}`);
+logger.info(`  Poll topic       : ${config.pollTopicName}`);
+logger.info(`  Auth directory   : ${config.authDir}`);
 
 /** Connects the Kafka producer then starts the WhatsApp client. */
 async function main(): Promise<void> {
@@ -20,12 +23,12 @@ async function main(): Promise<void> {
  * before exiting. Registered as the handler for SIGTERM and SIGINT.
  */
 async function shutdown(): Promise<void> {
-  console.log('\nShutting down gracefully...');
+  logger.info('Shutting down gracefully...');
   try {
     await stopWhatsAppClient();
     await disconnectProducer();
   } catch (err) {
-    console.error('Error during shutdown:', (err as Error).message);
+    logger.error(`Error during shutdown: ${(err as Error).message}`);
   }
   process.exit(0);
 }
@@ -34,6 +37,6 @@ process.on('SIGTERM', shutdown);
 process.on('SIGINT',  shutdown);
 
 main().catch((err: Error) => {
-  console.error('Fatal error:', err);
+  logger.error({ err }, 'Fatal error');
   process.exit(1);
 });
