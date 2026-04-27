@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/andy/development/footie/whatsapp-footie-group-reader-poc/**)",
+      "Bash(npm audit:*)",
+      "Bash(npm ls:*)",
+      "Bash(npm view:*)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}

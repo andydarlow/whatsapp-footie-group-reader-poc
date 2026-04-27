@@ -18,6 +18,10 @@ the club's website can be updated with the latest results on match days, etc.
 
 It will save a lot of time and free them up to play football (which is the point of being in the club).
 
+## POC architecture
+![architect.jpg](architect.jpg)
+
+
 ## What it does
 
 The **Whatsapp-message-Monitor** service connects to WhatsApp via [Baileys](https://github.com/WhiskeySockets/Baileys), watches a named group, and routes messages to Kafka:

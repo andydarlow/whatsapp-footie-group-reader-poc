@@ -24,10 +24,10 @@ export async function connectProducer(): Promise<void> {
 }
 
 /**
- * Publishes a single message to a Kafka topic.
- * @param topic - Target Kafka topic name.
- * @param key   - Message key (used for partition routing).
- * @param value - Message payload; serialised to JSON.
+ * Publishes a single message to a Kafka topic, partitioned by group name.
+ * @param topic     - Target Kafka topic name.
+ * @param key - WhatsApp group name used as the partition key.
+ * @param value     - Message payload; serialised to JSON.
  */
 export async function sendMessage(topic: string, key: string, value: unknown): Promise<void> {
   if (!connected) throw new Error('Kafka producer not connected');

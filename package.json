@@ -1,28 +1,24 @@
 {
-  "name": "whatsapp-message-monitor",
+  "name": "footie-monorepo",
   "version": "1.0.0",
-  "description": "Monitor WhatsApp group messages and route to Kafka topics",
-  "type": "module",
-  "main": "dist/index.js",
+  "private": true,
+  "description": "Football WhatsApp integration monorepo",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "tsx watch src/index.ts"
-  },
-  "dependencies": {
-    "@whiskeysockets/baileys": "^6.7.14",
-    "dotenv": "^16.4.5",
-    "kafkajs": "^2.2.4",
-    "pg": "^8.13.3",
-    "pino": "^9.5.0",
-    "qrcode-terminal": "^0.12.0"
+    "build": "npm run build --workspaces",
+    "build:monitor": "npm run build -w @footie/whatsapp-monitor",
+    "build:poll": "npm run build -w @footie/match-poll-consumer",
+    "build:admin": "npm run build -w @footie/team-admin-processor",
+    "dev:monitor": "npm run dev -w @footie/whatsapp-monitor",
+    "dev:poll": "npm run dev -w @footie/match-poll-consumer",
+    "dev:admin": "npm run dev -w @footie/team-admin-processor"
   },
   "engines": {
     "node": ">=20.0.0"
   },
-  "devDependencies": {
-    "@types/node": "^25.6.0",
-    "tsx": "^4.21.0",
-    "typescript": "^6.0.3"
+  "overrides": {
+    "protobufjs": "^7.5.5"
   }
 }

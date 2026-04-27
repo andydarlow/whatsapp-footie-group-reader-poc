@@ -24,11 +24,20 @@ interface MessageContext {
   timestamp: Date;
 }
 
+interface MatchKickoffTime {
+  dayOfWeek:   string;
+  dateOfMonth: string;
+  month:       string;
+  kickoffTime: string;
+  matchTimestamp: string;
+}
+
 interface PollCacheEntry {
   encKey:     Buffer | Uint8Array;
   creatorJid: string;
   pollName:   string;
   options:    string[];
+  matchInfo?: MatchKickoffTime;
 }
 
 let sock: WASocket;
@@ -75,16 +84,22 @@ async function preloadGroups(): Promise<void> {
   }
 }
 
+
+async function getGroupName(msg: WAMessage): Promise<String | null > {
+  const jid = msg.key.remoteJid;
+  if (!jid?.endsWith('@g.us')) return null;
+  return await resolveGroupName(jid);
+
+}
+
 /**
  * Returns `true` if the message was sent to the configured target group.
  * Rejects any message whose `remoteJid` is not a group JID (`@g.us` suffix).
  * @param msg - Baileys message object
  */
 async function isTargetGroup(msg: WAMessage): Promise<boolean> {
-  const jid = msg.key.remoteJid;
-  if (!jid?.endsWith('@g.us')) return false;
-  const groupName = await resolveGroupName(jid);
-  return groupName === config.groupName;
+  const name =  await getGroupName(msg)
+  return name == config.groupName;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -103,6 +118,57 @@ function getPollCreationMessage(content: NonNullable<WAMessage['message']>) {
     ?? null;
 }
 
+/** Regex to extract match details from a poll name (e.g. "Saturday 12th April Kickoff 2pm") */
+const MATCH_POLL_REGEX = /(Saturday)\s+(\d{1,2}(?:st|nd|rd|th))\s+([A-Z][a-z]+)\b.*?[k|K]ickoff\s+(\d{1,2}(?:\.\d{2})?(?:pm|am)?)/;
+
+/** Month name to zero-based index lookup */
+const MONTH_MAP: Record<string, number> = {
+  January: 0, February: 1, March: 2, April: 3, May: 4, June: 5,
+  July: 6, August: 7, September: 8, October: 9, November: 10, December: 11,
+};
+
+/**
+ * Parses match info from a poll name using the match poll regex. Returns the
+ * extracted fields and a computed ISO timestamp, or `null` if the name doesn't match.
+ * @param pollName - The poll name string to parse
+ */
+function parseMatchInfo(pollName: string): MatchKickoffTime | null {
+  const m = MATCH_POLL_REGEX.exec(pollName);
+  if (!m) return null;
+
+  const [, dayOfWeek, dateOfMonth, month, kickoffTime] = m;
+  const day       = parseInt(dateOfMonth, 10);
+  const monthIdx  = MONTH_MAP[month];
+  if (monthIdx === undefined) return null;
+
+  const year      = new Date().getFullYear();
+  const timeParts = parseKickoffTime(kickoffTime);
+  const matchDate = new Date(year, monthIdx, day, timeParts.hours, timeParts.minutes);
+
+  return { dayOfWeek, dateOfMonth, month, kickoffTime, matchTimestamp: matchDate.toISOString() };
+}
+
+/**
+ * Converts a kickoff time string (e.g. "2pm", "7.30pm", "10.00am") to hours
+ * and minutes in 24-hour format.
+ * @param time - Kickoff time string
+ */
+function parseKickoffTime(time: string): { hours: number; minutes: number } {
+  const isPm = time.toLowerCase().includes('pm');
+  const isAm = time.toLowerCase().includes('am');
+  const numeric = time.replace(/[ap]m/i, '');
+  const parts   = numeric.split('.');
+  let hours     = parseInt(parts[0], 10);
+  const minutes = parts.length > 1 ? parseInt(parts[1], 10) : 0;
+
+  if (!isAm && !isPm && hours < 12 ) hours += 12; // just incase it says game at 3:00
+  if (isPm && hours < 12) hours += 12;
+  if (isAm && hours === 12) hours = 0;
+
+
+  return { hours, minutes };
+}
+
 // ── Message type handlers ──────────────────────────────────────────────────
 
 /**
@@ -114,6 +180,7 @@ function getPollCreationMessage(content: NonNullable<WAMessage['message']>) {
 async function handleScoreMessage(msg: WAMessage, { groupName, sender, timestamp }: MessageContext): Promise<void> {
   const content = msg.message!;
   const text = content.conversation || content.extendedTextMessage?.text || '';
+  console.log(`text was: ${text}`)
   if (!text.trim().toLowerCase().startsWith('score')) return;
 
   const payload = {
@@ -141,22 +208,31 @@ async function handleScoreMessage(msg: WAMessage, { groupName, sender, timestamp
 async function handlePollCreation(msg: WAMessage, { groupName, sender, timestamp }: MessageContext): Promise<void> {
   const poll    = getPollCreationMessage(msg.message!)!;
   const options = poll.options?.map((o) => o.optionName ?? '') ?? [];
+  const pollName = poll.name ?? '';
+
+  const matchKickoffTime = parseMatchInfo(pollName);
+  if (!matchKickoffTime) {
+    console.log(`[poll] Skipping non-match poll: "${pollName}"`);
+    return;
+  }
 
   await pollKeyCache.set(msg.key.id!, {
     encKey:     msg.message!.messageContextInfo?.messageSecret as Buffer,
     creatorJid: sender,
-    pollName:   poll.name ?? '',
+    pollName,
     options,
+    matchInfo: matchKickoffTime,
   });
 
   const payload = {
-    type:      'poll_created',
-    messageId: msg.key.id,
-    group:     groupName,
+    type:           'poll_created',
+    messageId:      msg.key.id,
+    group:          groupName,
     sender,
-    pollName:  poll.name,
+    pollName,
     options,
-    timestamp: timestamp.toISOString(),
+    matchTimestamp: matchKickoffTime.matchTimestamp,
+    timestamp:      timestamp.toISOString(),
   };
   try {
     await sendMessage(config.pollTopicName, msg.key.id!, payload);
@@ -260,7 +336,7 @@ async function handleMessage(msg: WAMessage): Promise<void> {
     const groupJid = content.pollUpdateMessage.pollCreationMessageKey?.remoteJid;
     if (!groupJid?.endsWith('@g.us')) return;
     const groupName = await resolveGroupName(groupJid);
-    if (groupName !== config.groupName) return;
+
     await handlePollVote(msg, {
       jid: groupJid,
       groupName,
@@ -270,8 +346,6 @@ async function handleMessage(msg: WAMessage): Promise<void> {
     return;
   }
 
-  // All other message types use the standard group filter.
-  if (!await isTargetGroup(msg)) return;
 
   const jid       = msg.key.remoteJid!;
   const groupName = await resolveGroupName(jid);
