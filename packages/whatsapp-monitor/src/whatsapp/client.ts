@@ -4,6 +4,7 @@ import makeWASocket, {
   fetchLatestBaileysVersion,
   decryptPollVote,
   type WAMessage,
+  type WAMessageContent,
   type WASocket,
 } from '@whiskeysockets/baileys';
 import { createHash } from 'crypto';
@@ -315,6 +316,20 @@ async function handlePollVote(msg: WAMessage, { groupName, sender, timestamp }: 
 
 // ── Event bridge ───────────────────────────────────────────────────────────
 
+async function makeContext(msg: WAMessage) {
+  const content = msg.message;
+  const timestamp = new Date((Number(msg.messageTimestamp) || Date.now() / 1000) * 1000);
+  const jid = content?.pollUpdateMessage ? content.pollUpdateMessage.pollCreationMessageKey?.remoteJid :
+      msg.key.remoteJid!;
+  const groupName = await resolveGroupName(jid!);
+  return {
+    jid: jid!,
+    groupName,
+    sender: msg.key.participant || msg.key.remoteJid || '',
+    timestamp,
+  };
+}
+
 /**
  * Central event bridge for all incoming Baileys messages. Routes each message
  * to the appropriate typed handler after applying group filtering.
@@ -328,34 +343,8 @@ async function handleMessage(msg: WAMessage): Promise<void> {
   if (!msg.message) return;
 
   const content   = msg.message;
-  const timestamp = new Date((Number(msg.messageTimestamp) || Date.now() / 1000) * 1000);
-
-  // Poll votes are delivered peer-to-peer: remoteJid is the voter's JID, not the
-  // group. The group JID lives on the referenced poll creation message key instead.
-  if (content.pollUpdateMessage) {
-    const groupJid = content.pollUpdateMessage.pollCreationMessageKey?.remoteJid;
-    if (!groupJid?.endsWith('@g.us')) return;
-    const groupName = await resolveGroupName(groupJid);
-
-    await handlePollVote(msg, {
-      jid: groupJid,
-      groupName,
-      sender:    msg.key.participant || msg.key.remoteJid || '',
-      timestamp,
-    });
-    return;
-  }
-
-
-  const jid       = msg.key.remoteJid!;
-  const groupName = await resolveGroupName(jid);
-  const context: MessageContext = {
-    jid,
-    groupName,
-    sender:    msg.key.participant || msg.key.remoteJid || '',
-    timestamp,
-  };
-
+  const context = await makeContext(msg);
+  if (content.pollUpdateMessage && context.jid?.endsWith('@g.us')) await handlePollVote(msg, context);
   if (content.conversation || content.extendedTextMessage) await handleScoreMessage(msg, context);
   if (getPollCreationMessage(content))                      await handlePollCreation(msg, context);
 }
