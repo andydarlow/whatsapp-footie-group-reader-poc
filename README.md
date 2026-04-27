@@ -22,6 +22,10 @@ It will save a lot of time and free them up to play football (which is the point
 ![architect.jpg](architect.jpg)
 
 
+## Monorepo
+Each sub component is under the packages folder. There are 3 sub projects. Go into each project to build
+seperately.
+
 ## What it does
 
 The **Whatsapp-message-Monitor** service connects to WhatsApp via [Baileys](https://github.com/WhiskeySockets/Baileys), watches a named group, and routes messages to Kafka:
