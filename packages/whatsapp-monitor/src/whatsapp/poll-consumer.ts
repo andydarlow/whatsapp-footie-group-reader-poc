@@ -1,3 +1,6 @@
+/*
+  code for extract poll messages from whatsapp, processing them and putting the processed message on the queue
+ */
 import {
   decryptPollVote,
   type WAMessage,
@@ -32,6 +35,8 @@ interface PollCacheEntry {
   matchInfo?: MatchKickoffTime;
 }
 
+// keeping the poll creation data is necessary so that you can get the Key to decript the poll's vote.
+// so keep the data on a local file cache
 export const pollKeyCache = createFileCache<PollCacheEntry>(config.cacheDir);
 
 /**

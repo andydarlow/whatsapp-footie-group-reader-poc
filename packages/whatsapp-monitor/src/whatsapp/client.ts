@@ -1,3 +1,4 @@
+// code for reading messages from What's app. Deals with the hand shaking through Baileys.js
 import makeWASocket, {
   useMultiFileAuthState,
   DisconnectReason,
@@ -77,10 +78,6 @@ async function preloadGroups(): Promise<void> {
   }
 }
 
-
-
-// ── Event bridge ───────────────────────────────────────────────────────────
-
 /**
  * context is used to process any meessage from Whatsapp. Create this context
  * @param msg the whatapps message
@@ -141,6 +138,9 @@ function handleConnectionClose(lastDisconnect: { error?: Error } | undefined, re
 
 
 
+// ── Event bridge ───────────────────────────────────────────────────────────
+
+
 /**
  * Central event bridge for all incoming Baileys messages. Routes each message
  * to the appropriate typed handler after applying group filtering.
@@ -161,6 +161,24 @@ async function handleMessage(msg: WAMessage): Promise<void> {
 }
 
 
+async function processMessage(messages: WAMessage[]) : Promise<void> {
+    for (const msg of messages) {
+      await handleMessage(msg);
+    }
+}
+
+// deal with whatsapp connection events
+async function  onConnection(connection: string | undefined,
+                             lastDisconnect: {
+                                 error: Boom | Error | undefined;
+                                 date: Date;
+                             } | undefined, qr: string | undefined,
+                             connect: { (): void; (): void; }) {
+    if (qr)                    handleQRCode(qr);
+    if (connection === 'open') await handleConnectionOpen();
+    if (connection === 'close') handleConnectionClose(lastDisconnect as { error?: Error }, connect);
+}
+
 /**
  * Initialises and starts the WhatsApp client. Sets up the Baileys socket with
  * persisted multi-file auth state and registers event listeners for credentials,
@@ -169,13 +187,10 @@ async function handleMessage(msg: WAMessage): Promise<void> {
  * Calls `pollKeyCache.init()` first to ensure the cache directory exists.
  */
 export async function startWhatsAppClient(): Promise<void> {
-  await pollKeyCache.init();
 
+  await pollKeyCache.init();
   const { state, saveCreds } = await useMultiFileAuthState(config.authDir);
   const { version }          = await fetchLatestBaileysVersion();
-
-  logger.info(`Baileys version: ${version.join('.')}`);
-
   const connect = (): void => {
     sock = makeWASocket({
       version,
@@ -184,25 +199,12 @@ export async function startWhatsAppClient(): Promise<void> {
       markOnlineOnConnect: false,
     });
 
+    logger.info(`Baileys version: ${version.join('.')}`);
+
     sock.ev.on('creds.update', saveCreds);
-
-    sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
-      if (qr)                    handleQRCode(qr);
-      if (connection === 'open') await handleConnectionOpen();
-      if (connection === 'close') handleConnectionClose(lastDisconnect as { error?: Error }, connect);
-    });
-
-    sock.ev.on('messaging-history.set', async ({ messages }) => {
-      for (const msg of messages) {
-        await handleMessage(msg);
-      }
-    });
-
-    sock.ev.on('messages.upsert', async ({ messages }) => {
-      for (const msg of messages) {
-        await handleMessage(msg);
-      }
-    });
+    sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => onConnection(connection, lastDisconnect, qr,connect))
+    sock.ev.on('messaging-history.set', async ({messages}) => processMessage(messages));
+    sock.ev.on('messages.upsert', async ({messages}) => processMessage(messages));
   };
   connect();
 }
