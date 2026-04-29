@@ -52,6 +52,7 @@ const handlePollVote = async (
 
   const member = await findOrCreateMember(pool, event.voter, event.voterName);
   // you should only be able to make one vote
-  saveMatchVote(pool, match.id, member.id, event.selectedOptions[0], event.timestamp);
-  console.log(`[poll_vote] ${member.name} voted [${event.selectedOptions.join(', ')}] on match #${match.id}`);
+  const vote = event.selectedOptions[0] ? event.selectedOptions[0] : "NO_VOTE ";
+  await saveMatchVote(pool, match.id, member.id, vote, event.timestamp);
+  console.log(`[poll_vote] ${member.name} voted [${vote}] on match #${match.id}`);
 };
